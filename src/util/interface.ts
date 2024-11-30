@@ -1,47 +1,88 @@
-export interface IFoodWaste {
-    _id: string | undefined;
-    dateOfWaste: string; // Assuming this is the type based on your zod schema
-    foodCategory: string[];
-    otherFoodCategory?: string;
-    dishesWasted: string[];
-    otherDish?: string;
-    quantity: number; // Assuming quantity is a number
-    cost: number;
-    reasonForWaste: string[];
-    otherReason?: string;
-    notableIngredients?: string[];
-    otherIngredient?: string;
-    temperature: string;
-    mealType: string;
-    wasteStage: string;
-    disposalMethod: string;
-    otherDisposalMethod?: string;
-    environmentalConditions?: string;
-    relevantEvents?: string;
-    otherRelevantEvents?: string;
-    additionalComments?: string;
-    user: IUser; // Reference back to the user
-}
 
-export interface IUser {
+
+export interface IDonor {
     _id: string | undefined;
     profile?: Iimg;
     username: string;
-    firstName: string;
-    middleName?: string;
-    lastName: string;
-    email: string;
-    role: 'ADMIN' | 'CONTRIBUTOR';
+    donorId: string;
+    address: string;
     password: string;
-    status: 'PENDING' | 'APPROVED' | 'DECLINED';
-    foodWaste: IFoodWaste[]; // Array of food waste records associated with the user
+    phoneNumber?: string;
+    email?: string;
+    sex?: string,
+    age?: number,
+    doMedicalCondition?: Boolean
+}
+
+export interface IGuestDonor {
+    _id: string | undefined;
+    profile?: Iimg;
+    username: string;
+    address: string;
+    phoneNumber: string;
+    email: string;
+    sex: string,
+    age: number,
+    date: Date,
+    time: string,
+    hospital: string,
+    doMedicalCondition: Boolean
+}
+
+export interface IHospital {
+    _id: string | undefined;
+    user: IDonor | IGuestDonor;
+    date: Date;
+}
+
+export interface IApplication {
+    _id: string | undefined;
+    user: IDonor | IGuestDonor;
+    date: Date,
+    hospital: IHospital
+}
+
+export interface IAdmin {
+    _id: string | undefined;
+    profile?: Iimg;
+    username: string;
+    license: string;
+    address: string;
+    password: string;
 }
 
 export interface Iimg {
     _id: string | undefined;
-    user: IUser; // Reference back to the user
+    user: IDonor; // Reference back to the user
     path: string;
     name: string;
     imageType: string;
     fullPath: string;
+}
+
+export interface INotification {
+    _id: string | undefined;
+    user: IDonor; // Reference back to the user
+    path: string;
+    title: string;
+    description: string;
+}
+
+export interface IEvent {
+    _id: string | undefined;
+    path: string;
+    title: string;
+    description: string;
+    img: Iimg;
+    user: IAdmin
+}
+
+export interface IBloodSupply {
+    _id: string | undefined;
+    date: Date;
+    quantity: number;  // Quantity of blood supplied
+    bloodType: 'A+' | 'A-' | 'B+' | 'B-' | 'O+' | 'O-' | 'AB+' | 'AB-';  // Blood type
+    hospital: string | undefined;  // Reference to the Hospital
+    donor: string | undefined;  // Reference to the Donor
+    status: 'PENDING' | 'COMPLETED' | 'CANCELLED';  // Status of the blood supply
 }

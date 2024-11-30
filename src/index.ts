@@ -3,10 +3,10 @@ import bodyParser from 'body-parser';
 import userAPI from './api/user';
 import cors from 'cors';
 import mongoose from 'mongoose';
-import http, { createServer } from 'http'; 
+import _http, { createServer } from 'http'; 
 import { emitNotification, initializeSocket } from './util/socket';
-import foodwasteAPI from './api/food-waste';
-import statAPI from './api/stat';
+import appAPI from './api/management';
+import notificationAPI from './api/notification';
 
 const app = express();
 const server = createServer(app);
@@ -23,8 +23,8 @@ const corsOptions = {
 console.log(corsOptions)
 app.use(cors(corsOptions));
 app.use(userAPI);
-app.use(foodwasteAPI)
-app.use(statAPI)
+app.use(appAPI);
+app.use(notificationAPI);
 
 // Database
 try {
