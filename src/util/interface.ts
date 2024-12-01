@@ -70,10 +70,11 @@ export interface INotification {
 
 export interface IEvent {
     _id: string | undefined;
-    path: string;
     title: string;
     description: string;
-    img: Iimg;
+    location: string;
+    imgUrl: string;
+    date: Date,
     user: IAdmin
 }
 

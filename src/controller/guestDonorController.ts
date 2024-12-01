@@ -4,10 +4,8 @@ import { GuestDonor } from '../models/schema';
 // Create a new guest donor
 export const createGuestDonor = async (req: Request, res: Response) => {
   try {
-    // Create a new guest donor from the request body
     const { name, address, phoneNumber, email, sex, age, medicalCondition, date, time, hospital, profile } = req.body;
 
-    // Create a new guest donor instance
     const newGuestDonor = new GuestDonor({
       username: name,
       address,
@@ -25,7 +23,6 @@ export const createGuestDonor = async (req: Request, res: Response) => {
     // Save the new guest donor to the database
     await newGuestDonor.save();
 
-    // Respond with the newly created guest donor
     res.status(201).json({ message: 'Guest Donor created successfully', data: newGuestDonor });
   } catch (error) {
     console.error(error);
@@ -36,10 +33,7 @@ export const createGuestDonor = async (req: Request, res: Response) => {
 // Get all guest donors
 export const getGuestDonors = async (req: Request, res: Response) => {
   try {
-    // Retrieve all guest donors from the database
     const guestDonors = await GuestDonor.find();
-
-    // Respond with the list of guest donors
     res.status(200).json({ message: 'Guest Donors fetched successfully', data: guestDonors });
   } catch (error) {
     console.error(error);
@@ -59,7 +53,6 @@ export const getGuestDonorById = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'Guest Donor not found' });
     }
 
-    // Respond with the found guest donor
     res.status(200).json({ message: 'Guest Donor fetched successfully', data: guestDonor });
   } catch (error) {
     console.error(error);
@@ -80,7 +73,6 @@ export const updateGuestDonor = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'Guest Donor not found' });
     }
 
-    // Respond with the updated guest donor
     res.status(200).json({ message: 'Guest Donor updated successfully', data: updatedGuestDonor });
   } catch (error) {
     console.error(error);
@@ -100,7 +92,6 @@ export const deleteGuestDonor = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'Guest Donor not found' });
     }
 
-    // Respond with a success message
     res.status(200).json({ message: 'Guest Donor deleted successfully', data: deletedGuestDonor });
   } catch (error) {
     console.error(error);

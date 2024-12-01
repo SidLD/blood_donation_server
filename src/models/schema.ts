@@ -126,10 +126,11 @@ export const Notification = model("Notification", notificationSchema);
 
 const eventSchema = new Schema<IEvent>(
   {
-    path: { type: String, required: true },
     title: { type: String, required: true },
     description: { type: String, required: true },
-    img: { type: Schema.Types.ObjectId, ref: "Image" }, // Reference to Iimg schema
+    imgUrl:  { type: String, required: true },
+    location:  { type: String, required: true },
+    date: Date,
     user: { type: Schema.Types.ObjectId, ref: "Admin" }, // Reference to Admin
   },
   { timestamps: true }

@@ -3,7 +3,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import { verifyToken } from '../util/verify';  
 import { createApplication, getApplications } from '../controller/applicationController';
-import { createEvent, getEvents } from '../controller/eventController';
+import { createEvent, deleteEvent, getEvents, updateEvent } from '../controller/eventController';
 import { createBloodSupply, getBloodSupplies } from '../controller/hospital';
 
 dotenv.config();
@@ -16,7 +16,9 @@ appAPI.get('/applications', verifyToken, getApplications);    // Get all applica
 
 // Event Routes
 appAPI.post('/event', verifyToken, createEvent);              // Create an event
-appAPI.get('/events', getEvents);                              // Get all events
+appAPI.get('/events', getEvents);    
+appAPI.put('/event/:id', verifyToken, updateEvent);                             // Get all events
+appAPI.delete('/event/:id', verifyToken, deleteEvent);     
 
 // Blood Supply Routes
 appAPI.post('/blood-supply', verifyToken, createBloodSupply);  // Create a blood supply record
