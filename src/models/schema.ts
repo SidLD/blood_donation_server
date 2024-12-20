@@ -1,33 +1,45 @@
 import { Schema, model } from "mongoose";
-import { IAdmin, IApplication, IBloodSupply, IDonor, IEvent, IGuestDonor, IHospital, Iimg, INotification } from "../util/interface";
+import { IAdmin, ITransaction, IBloodSupply, IDonor, IEvent, IGuestDonor, Iimg, INotification, IDonorNumber } from "../util/interface";
 
+const donorNumberSchema = new Schema<IDonorNumber>({
+  donorId: { type: String, required: true, unique: true },
+  isUsed: {type: Boolean, default: false},
+  isVerified: {type: Boolean, default: false}
+}, { timestamps: true });
+
+export const DonorNumber = model<IDonorNumber>("DonorNumber", donorNumberSchema);
 
 const donorSchema = new Schema<IDonor>({
   profile: { type: Schema.Types.ObjectId, ref: "Image" },  // Reference to Image schema
-  username: { type: String, required: true },
+  username: { type: String, required: false },
   donorId: { type: String, required: true, unique: true },
-  address: { type: String, required: true },
-  password: { type: String, required: true },
+  address: { type: String, required: false },
+  bloodType: { type: String, required: true },
+  password: { type: String, required: false },
   phoneNumber: { type: String, default: null },
   email: { type: String, default: null },
   sex: { type: String, default: null },
   age: { type: Number, default: null },
   doMedicalCondition: { type: Boolean, default: false },
+  transactions: [
+    { type: Schema.Types.ObjectId, ref: "Transaction" }
+  ],
+  status: {type: String, default: 'INACTIVE'}
 }, { timestamps: true });
 
 export const Donor = model<IDonor>("Donor", donorSchema);
 
 const guestDonorSchema = new Schema<IGuestDonor>({
-  profile: { type: Schema.Types.ObjectId, ref: "Image" },  // Reference to Image schema
+  profile: { type: Schema.Types.ObjectId, ref: "Image" },  
   username: { 
     type: String, 
     required: true,
-    minlength: 2,  // Min length to match the Zod validation
+    minlength: 2,  
   },
   address: { 
     type: String, 
     required: true, 
-    minlength: 5,  // Ensuring address length is at least 5 characters
+    minlength: 5,
   },
   phoneNumber: { 
     type: String, 
@@ -60,31 +72,22 @@ const guestDonorSchema = new Schema<IGuestDonor>({
     type: String, 
     required: true,  // Hospital must be required
   },
+  bloodType: { type: String, required: true },
 }, { timestamps: true });
 
 
 export const GuestDonor = model<IGuestDonor>("GuestDonor", guestDonorSchema);
 
-const hospitalSchema = new Schema<IHospital>(
+const transactionSchema = new Schema<ITransaction>(
   {
-    user: { type: Schema.Types.ObjectId, refPath: 'userType' }, // Reference to IDonor or IGuestDonor
-    date: { type: Date, required: true },
-  },
-  { timestamps: true }
-);
-
-export const Hospital = model("Hospital", hospitalSchema);
-
-const applicationSchema = new Schema<IApplication>(
-  {
-    user: { type: Schema.Types.ObjectId, refPath: 'userType' }, // Reference to IDonor or IGuestDonor
+    user: { type: Schema.Types.ObjectId, ref: 'Donor' }, 
     date: { type: Date, required: true },
     hospital: { type: Schema.Types.ObjectId, ref: "Hospital" },
   },
   { timestamps: true }
 );
 
-export const Application = model("Application", applicationSchema);
+export const Transaction = model("Transaction", transactionSchema);
 
 const adminSchema = new Schema<IAdmin>(
   {
@@ -130,25 +133,11 @@ const eventSchema = new Schema<IEvent>(
     description: { type: String, required: true },
     imgUrl:  { type: String, required: true },
     location:  { type: String, required: true },
-    date: Date,
+    startDate: Date,
+    endDate: Date,
     user: { type: Schema.Types.ObjectId, ref: "Admin" }, // Reference to Admin
   },
   { timestamps: true }
 );
 
 export const Event = model("Event", eventSchema);
-
-
-const bloodSupplySchema = new Schema<IBloodSupply>(
-  {
-    date: { type: Date, required: true },  // Date of supply
-    quantity: { type: Number, required: true },  // Quantity of blood supplied (e.g., in liters or units)
-    bloodType: { type: String, required: true, enum: ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'] },  // Blood type
-    hospital: { type: Schema.Types.ObjectId, ref: "Hospital", required: true },  // Reference to hospital that received the blood supply
-    donor: { type: Schema.Types.ObjectId, ref: "Donor", required: true },  // Reference to the donor who provided the blood
-    status: { type: String, enum: ['PENDING', 'COMPLETED', 'CANCELLED'], default: 'PENDING' },  // Status of the supply
-  },
-  { timestamps: true }
-);
-
-export const BloodSupply = model<IBloodSupply>("BloodSupply", bloodSupplySchema);

@@ -1,10 +1,14 @@
 import express from 'express'
 import dotenv from 'dotenv'
 import { verifyToken } from '../util/verify';
-import { getAdminSetting, getDonors, getDonorSetting, loginAdmin, loginDonor, registerAdmin, registerDonor } from '../controller/userController';
+import { deleteDonorNumber, generateDonorNumnber, getAdminSetting, getDonors, getDonorSetting, loginAdmin, loginDonor, registerAdmin, registerDonor } from '../controller/userController';
 import { createGuestDonor, deleteGuestDonor, getGuestDonorById, updateGuestDonor } from '../controller/guestDonorController';
 dotenv.config()
 const userAPI = express()
+//Donor Number
+userAPI.post('/generate-donor-number', verifyToken, generateDonorNumnber);
+userAPI.delete('/generate-donor-number', verifyToken, deleteDonorNumber);
+
 //Donor
 userAPI.post('/register-donor', registerDonor);
 userAPI.post('/login-donor', loginDonor);
@@ -16,7 +20,6 @@ userAPI.get('/guest-donors', getGuestDonorById);
 userAPI.get('/guest-donors/:id', getGuestDonorById);
 userAPI.put('/guest-donors/:id', updateGuestDonor);
 userAPI.delete('/guest-donors/:id', deleteGuestDonor);
-
 
 //Admin
 userAPI.post('/register-admin', registerAdmin);

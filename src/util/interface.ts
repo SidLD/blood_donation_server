@@ -1,25 +1,34 @@
-
+export interface IDonorNumber {
+    _id?: string;
+    donorId: string;
+    isUsed: boolean;
+    isVerified: boolean;
+}
 
 export interface IDonor {
-    _id: string | undefined;
+    _id?: string;
     profile?: Iimg;
     username: string;
     donorId: string;
     address: string;
     password: string;
     phoneNumber?: string;
+    bloodType: 'A+' | 'A-'| 'B+' | 'B-' | 'O+' | 'O-' | 'AB+'| 'AB-';
     email?: string;
     sex?: string,
     age?: number,
+    status: 'ACTIVE' | 'INACTIVE',
+    transactions: ITransaction[]
     doMedicalCondition?: Boolean
 }
 
 export interface IGuestDonor {
-    _id: string | undefined;
+    _id?: string;
     profile?: Iimg;
     username: string;
     address: string;
     phoneNumber: string;
+    bloodType: 'A+' | 'A-'| 'B+' | 'B-' | 'O+' | 'O-' | 'AB+'| 'AB-';
     email: string;
     sex: string,
     age: number,
@@ -29,21 +38,18 @@ export interface IGuestDonor {
     doMedicalCondition: Boolean
 }
 
-export interface IHospital {
-    _id: string | undefined;
+
+export interface ITransaction {
+    _id?: string;
     user: IDonor | IGuestDonor;
     date: Date;
-}
-
-export interface IApplication {
-    _id: string | undefined;
-    user: IDonor | IGuestDonor;
-    date: Date,
-    hospital: IHospital
+    status: 'PENDING' | 'DONE';
+    remarks: String;
+    hospital: IAdmin;
 }
 
 export interface IAdmin {
-    _id: string | undefined;
+    _id?: string;
     profile?: Iimg;
     username: string;
     license: string;
@@ -61,7 +67,7 @@ export interface Iimg {
 }
 
 export interface INotification {
-    _id: string | undefined;
+    _id?: string;
     user: IDonor; // Reference back to the user
     path: string;
     title: string;
@@ -69,17 +75,18 @@ export interface INotification {
 }
 
 export interface IEvent {
-    _id: string | undefined;
+    _id?: string;
     title: string;
     description: string;
     location: string;
     imgUrl: string;
-    date: Date,
+    startDate: Date,
+    endDate: Date,
     user: IAdmin
 }
 
 export interface IBloodSupply {
-    _id: string | undefined;
+    _id?: string;
     date: Date;
     quantity: number;  // Quantity of blood supplied
     bloodType: 'A+' | 'A-' | 'B+' | 'B-' | 'O+' | 'O-' | 'AB+' | 'AB-';  // Blood type

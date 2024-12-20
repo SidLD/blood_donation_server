@@ -2,8 +2,54 @@
 import mongoose from "mongoose";
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
-import { IAdmin , IDonor} from "../util/interface";
-import { Admin, Donor } from "../models/schema";
+import { IAdmin , IDonor, IDonorNumber} from "../util/interface";
+import { Admin, Donor, DonorNumber } from "../models/schema";
+
+export const generateDonorNumnber = async (req: any, res: any) => {
+    try {
+        const { donorNumber} = req.body;
+          const params: IDonor = req.body
+  
+          const donorNumberData:IDonorNumber | null = await DonorNumber.findOne({donorId: donorNumber})
+          if(donorNumberData?.isVerified){
+              return res.status(400).json({ error: 'Donor ID is already used' });
+          }
+          const user:IDonor | null = await Donor.findOne({donorId: params.donorId})
+          if(user){
+            return res.status(400).json({ error: 'Donor Already Exist' });
+          }
+
+          const newDonorNumber = await DonorNumber.create({donorId: donorNumber})
+          res.status(200).send({newDonorNumber})
+  
+    } catch (error: any) {
+        console.log(error.message)
+        res.status(400).send({message:"Invalid Data"})
+    }
+}
+
+export const deleteDonorNumber = async (req: any, res: any) => {
+    try {
+         const { donorNumber} = req.body;
+          const params: IDonor = req.body
+  
+          const donorNumberData:IDonorNumber | null = await DonorNumber.findOne({donorId: donorNumber})
+          if(donorNumberData?.isVerified){
+              return res.status(400).json({ error: 'Donor ID is already used' });
+          }
+          const user:IDonor | null = await Donor.findOne({donorId: params.donorId})
+          if(user){
+            return res.status(400).json({ error: 'Donor Already Exist' });
+          }
+
+          const newDonorNumber = await DonorNumber.findByIdAndDelete(donorNumber)
+          res.status(200).send({newDonorNumber})
+  
+    } catch (error: any) {
+        console.log(error.message)
+        res.status(400).send({message:"Invalid Data"})
+    }
+}
 
 export const registerAdmin = async (req: any, res: any) => {
     try {
@@ -34,6 +80,16 @@ export const registerDonor = async (req: any, res: any) => {
   try {
       const { profile , role } = req.body;
         const params: IDonor = req.body
+
+        const donorNumber:IDonorNumber | null = await DonorNumber.findOne({donorId: params.donorId})
+        if(donorNumber?.isVerified){
+            return res.status(400).json({ error: 'Donor ID is already used' });
+        }
+
+        if(!donorNumber){
+            return res.status(400).json({ error: 'Donor ID not Found' });
+        }
+
         const user:IDonor | null = await Donor.findOne({donorId: params.donorId})
         if(user){
           return res.status(400).json({ error: 'Donor Already Exist' });
@@ -45,6 +101,10 @@ export const registerDonor = async (req: any, res: any) => {
           ...params,
           password: hashedPassword,
           profile: profile ? profile : null
+        })
+        await DonorNumber.findByIdAndUpdate(donorNumber._id, {
+            isUsed: true,
+            isVerified: true
         })
         res.status(200).send({newUser})
 

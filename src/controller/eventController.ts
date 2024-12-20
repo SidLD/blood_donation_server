@@ -5,19 +5,25 @@ import { Event } from '../models/schema';
 // Create an Event
 export const createEvent = async (req: any, res: any) => {
   try {
-    const { location, title, description, imgUrl, date } = req.body;
+    const { location, title, description, imgUrl, startDate, endDate } = req.body;
+
+    // Validate startDate and endDate
+    if (new Date(startDate) >= new Date(endDate)) {
+      return res.status(400).json({ error: "Start date must be earlier than end date." });
+    }
 
     const newEvent = new Event({
       title,
       description,
       imgUrl,
       location,
-      date,
-      user: req.user.id
+      startDate,
+      endDate,
+      user: req.user.id,
     });
 
     await newEvent.save();
-    res.status(201).json({ message: "Event created successfully!" });
+    res.status(200).json({ message: "Event created successfully!" });
   } catch (error) {
     res.status(500).json({ error: "Failed to create event." });
   }
@@ -29,27 +35,31 @@ export const getEvents = async (req: Request, res: Response) => {
     const events = await Event.find().sort({ date: 1 }).populate('user', '-password');
     res.json(events);
   } catch (error) {
-    console.log(error)
+    console.log(error);
     res.status(500).json({ error: "Failed to fetch events." });
   }
 };
 
+// Update an Event
 export const updateEvent = async (req: Request, res: Response) => {
   try {
     const eventId = req.params.id;
-    const { title, description, location, imgUrl, date } = req.body;
-    let data:any = { title, description, location, date }
-    if(imgUrl){
-      data.imgUrl = imgUrl
+    const { title, description, location, imgUrl, startDate, endDate } = req.body;
+
+    // Validate startDate and endDate if they are provided
+    if (startDate && endDate && new Date(startDate) >= new Date(endDate)) {
+      return res.status(400).json({ error: "Start date must be earlier than end date." });
     }
-    const updatedEvent = await Event.findByIdAndUpdate(
-      eventId,
-      data,
-      { new: true } 
-    );
+
+    const data: any = { title, description, location, startDate, endDate };
+    if (imgUrl) {
+      data.imgUrl = imgUrl;
+    }
+
+    const updatedEvent = await Event.findByIdAndUpdate(eventId, data, { new: true });
 
     if (!updatedEvent) {
-      return res.status(404).json({ error: "Event not found." });
+      return res.status(400).json({ error: "Event not found." });
     }
 
     res.json({ message: "Event updated successfully!", event: updatedEvent });
@@ -59,7 +69,7 @@ export const updateEvent = async (req: Request, res: Response) => {
   }
 };
 
-// Delete Event
+// Delete an Event
 export const deleteEvent = async (req: Request, res: Response) => {
   try {
     const eventId = req.params.id;
@@ -67,7 +77,7 @@ export const deleteEvent = async (req: Request, res: Response) => {
     const deletedEvent = await Event.findByIdAndDelete(eventId);
 
     if (!deletedEvent) {
-      return res.status(404).json({ error: "Event not found." });
+      return res.status(400).json({ error: "Event not found." });
     }
 
     res.json({ message: "Event deleted successfully!" });

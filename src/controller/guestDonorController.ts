@@ -4,7 +4,7 @@ import { GuestDonor } from '../models/schema';
 // Create a new guest donor
 export const createGuestDonor = async (req: Request, res: Response) => {
   try {
-    const { name, address, phoneNumber, email, sex, age, medicalCondition, date, time, hospital, profile } = req.body;
+    const { name, address, phoneNumber, email, sex, age, medicalCondition, date, time, hospital, profile , bloodType} = req.body;
 
     const newGuestDonor = new GuestDonor({
       username: name,
@@ -13,6 +13,7 @@ export const createGuestDonor = async (req: Request, res: Response) => {
       email,
       sex ,
       age,
+      bloodType,
       doMedicalCondition: medicalCondition == "No" ? false : true,
       date,
       time,

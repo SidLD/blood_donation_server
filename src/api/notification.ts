@@ -10,8 +10,8 @@ import {
 const notificationAPI = express.Router();
 
 // Notification Routes
-notificationAPI.get('/:donorId', verifyToken, getNotificationsForDonor);  // Get notifications for a specific donor
-notificationAPI.get('/', verifyToken, getAllNotifications);  // Get all notifications (admin or general view)
-notificationAPI.delete('/:notificationId', verifyToken, deleteNotification);  // Delete a notification
+notificationAPI.get('/:donorId', verifyToken, getNotificationsForDonor);  
+notificationAPI.get('/', verifyToken, getAllNotifications); 
+notificationAPI.delete('/:notificationId', verifyToken, deleteNotification);  
 
 export default notificationAPI;
