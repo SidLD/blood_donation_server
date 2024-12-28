@@ -3,6 +3,7 @@ export interface IDonorNumber {
     donorId: string;
     isUsed: boolean;
     isVerified: boolean;
+    hospital: IAdmin
 }
 
 export interface IDonor {
@@ -42,7 +43,7 @@ export interface IGuestDonor {
 export interface ITransaction {
     _id?: string;
     user: IDonor | IGuestDonor;
-    date: Date;
+    datetime: Date;
     status: 'PENDING' | 'DONE';
     remarks: String;
     hospital: IAdmin;
@@ -59,7 +60,6 @@ export interface IAdmin {
 
 export interface Iimg {
     _id: string | undefined;
-    user: IDonor; // Reference back to the user
     path: string;
     name: string;
     imageType: string;
@@ -92,5 +92,5 @@ export interface IBloodSupply {
     bloodType: 'A+' | 'A-' | 'B+' | 'B-' | 'O+' | 'O-' | 'AB+' | 'AB-';  // Blood type
     hospital: string | undefined;  // Reference to the Hospital
     donor: string | undefined;  // Reference to the Donor
-    status: 'PENDING' | 'COMPLETED' | 'CANCELLED';  // Status of the blood supply
+    status: 'PENDING' | 'APPROVED'| 'COMPLETED' | 'REJECTED';  // Status of the blood supply
 }

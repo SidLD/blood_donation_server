@@ -2,7 +2,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import { verifyToken } from '../util/verify';  
-import { createApplication, deleteApplication, getApplications, updateApplication, updateApplicationStatus } from '../controller/transactionController';
+import {   createDonorApplication, createHospitalApplication, deleteApplication, getDonorApplication, getHospitalApplications, getHospitalCalendar, updateApplication, updateApplicationStatus } from '../controller/transactionController';
 import { createEvent, deleteEvent, getEvents, updateEvent } from '../controller/eventController';
 
 dotenv.config();
@@ -10,10 +10,18 @@ dotenv.config();
 const appAPI = express.Router();
 
 // Application Routes
-appAPI.post('/application', verifyToken, createApplication);  // Create an application
-appAPI.get('/applications', verifyToken, getApplications);    // Get all applications
+appAPI.post('/donor/application', verifyToken, createDonorApplication);  
+appAPI.get('/donor/applications', verifyToken, getDonorApplication);    
+
+appAPI.post('/hospital/application', verifyToken, createHospitalApplication);  
+appAPI.get('/hospital/applications', verifyToken, getHospitalApplications);    
+
+appAPI.get('/hospital/calendar', verifyToken, getHospitalCalendar); 
+
 appAPI.put('/application/:applicationId', verifyToken, updateApplication);  
-appAPI.put('/application-status/:applicationId', verifyToken, updateApplicationStatus);  
+
+
+appAPI.put('/application-status/:applicationId', verifyToken, updateApplicationStatus); 
 appAPI.delete('/application-status/:applicationId', verifyToken, deleteApplication);  
 
 // Event Routes

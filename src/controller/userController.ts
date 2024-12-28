@@ -5,51 +5,73 @@ import jwt from 'jsonwebtoken'
 import { IAdmin , IDonor, IDonorNumber} from "../util/interface";
 import { Admin, Donor, DonorNumber } from "../models/schema";
 
-export const generateDonorNumnber = async (req: any, res: any) => {
+export const generateDonorNumber = async (req: any, res: any) => {
     try {
-        const { donorNumber} = req.body;
-          const params: IDonor = req.body
+      const { donorId } = req.body;  // Retrieve donorId from the request body
+      const params: IDonorNumber = req.body; // Assuming body contains IDonorNumber data
   
-          const donorNumberData:IDonorNumber | null = await DonorNumber.findOne({donorId: donorNumber})
-          if(donorNumberData?.isVerified){
-              return res.status(400).json({ error: 'Donor ID is already used' });
-          }
-          const user:IDonor | null = await Donor.findOne({donorId: params.donorId})
-          if(user){
-            return res.status(400).json({ error: 'Donor Already Exist' });
-          }
-
-          const newDonorNumber = await DonorNumber.create({donorId: donorNumber})
-          res.status(200).send({newDonorNumber})
+      // Check if donor number already exists and is verified
+      const donorNumberData: IDonorNumber | null = await DonorNumber.findOne({ donorId });
+      if (donorNumberData?.isVerified) {
+        return res.status(400).json({ error: 'Donor ID is already used' });
+      }
   
+      // Check if the donor already exists in the Donor collection
+      const user: IDonor | null = await Donor.findOne({ donorId: params.donorId });
+      if (user) {
+        return res.status(400).json({ error: 'Donor Already Exist' });
+      }
+  
+      // Create a new donor number if validations pass
+      const newDonorNumber = await DonorNumber.create({ donorId, hospital: req.user.id });
+      res.status(200).send({ newDonorNumber });
     } catch (error: any) {
-        console.log(error.message)
-        res.status(400).send({message:"Invalid Data"})
+      console.log(error.message);
+      res.status(400).send({ message: 'Invalid Data' });
     }
-}
-
+};
+  
 export const deleteDonorNumber = async (req: any, res: any) => {
     try {
-         const { donorNumber} = req.body;
-          const params: IDonor = req.body
+      const { donorId } = req.body;  // Get donorId from the body
+      const hospital = req.user.id
+      // Check if the donor number exists and is verified
+      const donorNumberData: IDonorNumber | null = await DonorNumber.findOne({ _id: donorId , hospital});
+      if (donorNumberData?.isVerified) {
+        return res.status(400).json({ error: 'Donor ID is already used and cannot be deleted' });
+      }
   
-          const donorNumberData:IDonorNumber | null = await DonorNumber.findOne({donorId: donorNumber})
-          if(donorNumberData?.isVerified){
-              return res.status(400).json({ error: 'Donor ID is already used' });
-          }
-          const user:IDonor | null = await Donor.findOne({donorId: params.donorId})
-          if(user){
-            return res.status(400).json({ error: 'Donor Already Exist' });
-          }
+      const donorNumber = await DonorNumber.findOne({ _id: donorId , hospital});
+      if (!donorNumber) {
+        return res.status(400).json({ error: 'Donor number not found' });
+      }
+      // Find the donor record to delete
+      console.log(donorNumberData,donorId)
+      await DonorNumber.findByIdAndDelete(donorNumber._id)
 
-          const newDonorNumber = await DonorNumber.findByIdAndDelete(donorNumber)
-          res.status(200).send({newDonorNumber})
   
+      res.status(200).send({ donorNumber , hospital});
     } catch (error: any) {
-        console.log(error.message)
-        res.status(400).send({message:"Invalid Data"})
+      console.log(error.message);
+      res.status(400).send({ message: 'Invalid Data' });
     }
-}
+};
+  
+export const getDonorNumber = async (req: any, res: any) => {
+    try {
+      // Retrieve all donor numbers
+      const donorNumberData: IDonorNumber[] = await DonorNumber.find({hospital: req.user.id});
+  
+      if (!donorNumberData) {
+        return res.status(404).json({ error: 'No donor numbers found' });
+      }
+  
+      res.status(200).send({ donorNumberData });
+    } catch (error: any) {
+      console.log(error.message);
+      res.status(400).send({ message: 'Error fetching donor numbers' });
+    }
+};
 
 export const registerAdmin = async (req: any, res: any) => {
     try {
@@ -113,6 +135,50 @@ export const registerDonor = async (req: any, res: any) => {
       res.status(400).send({message:"Invalid Data"})
   }
 }
+
+export const getAdmins = async (req: any, res: any) => {
+    try {
+        const users:IAdmin[] = await Admin.find({}).select('-password');
+        res.status(200).send(JSON.stringify(users))
+    } catch (error: any) {
+        console.log(error.message)
+        res.status(400).send({message:"Error while Fetching Donors"})
+    }
+}
+
+export const getAdminDonor = async (req: any, res: any) => {
+  try {
+    const hospitalId = req.user.id; 
+    const donors = await Donor.aggregate([
+      {
+        $lookup: {
+          from: 'donornumbers', 
+          localField: 'donorId', 
+          foreignField: 'donorId', 
+          as: 'donorNumbers', 
+        },
+      },
+      {
+        $unwind: '$donorNumbers', 
+      },
+      {
+        $match: {
+          'donorNumbers.hospital': new mongoose.Types.ObjectId(hospitalId), 
+        },
+      },
+      {
+        $project: {
+          password: 0, 
+        },
+      },
+    ]);
+
+    res.status(200).json(donors);
+  } catch (error: any) {
+    console.error(error.message);
+    res.status(400).send({ message: "Error while fetching donors" });
+  }
+};
 
 export const loginAdmin = async (req: any, res: any) => {
   try {
@@ -188,15 +254,6 @@ export const loginDonor = async (req: any, res: any) => {
   }
 }
 
-export const getDonors = async (req: any, res: any) => {
-    try {
-        const users:IDonor[] = await Donor.find({}).select('-password');
-        res.status(200).send(JSON.stringify(users))
-    } catch (error: any) {
-        console.log(error.message)
-        res.status(400).send({message:"Error while Fetching Donors"})
-    }
-}
 
 export const getDonorSetting = async (req: any, res: any) => {
   try {
@@ -210,6 +267,66 @@ export const getDonorSetting = async (req: any, res: any) => {
       res.status(400).send({message:"Error in fetching Donor Data"})
   }
 }
+
+export const updateDonorSetting = async (req: any, res: any) => {
+  try {
+    const { user } = req;
+    const { email, name, phoneNumber } = req.body; 
+
+    const updatedDonor = await Donor.findOneAndUpdate(
+      { _id: new mongoose.Types.ObjectId(user.id) },
+      { email, name, phoneNumber }, 
+      { new: true, runValidators: true }
+    ).select('-password'); 
+
+    if (!updatedDonor) {
+      return res.status(404).send({ message: 'Donor not found' });
+    }
+
+    res.status(200).json(updatedDonor);
+  } catch (error: any) {
+    console.log(error.message);
+    res.status(400).send({ message: 'Error in updating Donor Settings' });
+  }
+};
+
+export const updateDonorPassword = async (req: any, res: any) => {
+  try {
+    const { user } = req;
+    const { currentPassword, confirmPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      return res.status(400).send({ message: 'Current password, new password, and confirm password are required' });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).send({ message: 'New password and confirm password do not match' });
+    }
+
+    const donor = await Donor.findOne({ _id: new mongoose.Types.ObjectId(user.id) });
+
+    if (!donor) {
+      return res.status(404).send({ message: 'Donor not found' });
+    }
+
+    // Check if current password is correct
+    const isMatch = await bcrypt.compare(currentPassword, donor.password);
+    if (!isMatch) {
+      return res.status(400).send({ message: 'Current password is incorrect' });
+    }
+
+    // Hash new password and update it
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    donor.password = hashedPassword;
+
+    await donor.save();
+
+    res.status(200).send({ message: 'Password updated successfully' });
+  } catch (error: any) {
+    console.log(error.message);
+    res.status(400).send({ message: 'Error in updating Donor Password' });
+  }
+};
 
 export const getAdminSetting = async (req: any, res: any) => {
   try {

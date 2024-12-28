@@ -4,7 +4,8 @@ import { IAdmin, ITransaction, IBloodSupply, IDonor, IEvent, IGuestDonor, Iimg, 
 const donorNumberSchema = new Schema<IDonorNumber>({
   donorId: { type: String, required: true, unique: true },
   isUsed: {type: Boolean, default: false},
-  isVerified: {type: Boolean, default: false}
+  isVerified: {type: Boolean, default: false},
+  hospital: { type: Schema.Types.ObjectId, ref: "Hospital" },
 }, { timestamps: true });
 
 export const DonorNumber = model<IDonorNumber>("DonorNumber", donorNumberSchema);
@@ -81,8 +82,10 @@ export const GuestDonor = model<IGuestDonor>("GuestDonor", guestDonorSchema);
 const transactionSchema = new Schema<ITransaction>(
   {
     user: { type: Schema.Types.ObjectId, ref: 'Donor' }, 
-    date: { type: Date, required: true },
-    hospital: { type: Schema.Types.ObjectId, ref: "Hospital" },
+    datetime: { type: Date, required: true },
+    status: {type: String, default: 'PENDING'},
+    remarks: {type: String},
+    hospital: { type: Schema.Types.ObjectId, ref: "Admin" },
   },
   { timestamps: true }
 );
@@ -104,7 +107,6 @@ export const Admin = model("Admin", adminSchema);
 
 const imgSchema = new Schema<Iimg>(
   {
-    user: { type: Schema.Types.ObjectId, ref: "Donor" }, // Reference back to Donor (IDonor)
     path: { type: String, required: true },
     name: { type: String, required: true },
     imageType: { type: String, required: true },
