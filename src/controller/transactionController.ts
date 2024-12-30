@@ -41,6 +41,7 @@ export const createHospitalApplication = async (req: any, res: Response) => {
     if (!req.user || !req.user.id) {
       return res.status(400).json({ error: "Unauthorized: User information is missing." });
     }
+    console.log(user, "test2" , hospital)
     const newApplication = new Transaction({
       user,
       datetime,
@@ -49,8 +50,9 @@ export const createHospitalApplication = async (req: any, res: Response) => {
     });
 
     await newApplication.save();
-    res.status(201).json({ message: "Application created successfully!" });
+    res.status(200).json({ message: "Application created successfully!" });
   } catch (error) {
+    console.log(error)
     res.status(500).json({ error: "Failed to create application." });
   }
 };

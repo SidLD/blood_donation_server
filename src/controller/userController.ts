@@ -180,6 +180,72 @@ export const getAdminDonor = async (req: any, res: any) => {
   }
 };
 
+export const getAdminDonorByCategory = async (req: any, res: any) => {
+  try {
+    const hospitalId = req.user.id; 
+
+    const donors = await Donor.aggregate([
+      {
+        $lookup: {
+          from: "transactions",
+          localField: "_id",
+          foreignField: "user",
+          as: "transactions",
+        },
+      },
+      {
+        $lookup: {
+          from: "donornumbers",
+          localField: "donorId",
+          foreignField: "donorId",
+          as: "donorNumbers",
+        },
+      },
+      {
+        $unwind: "$donorNumbers",
+      },
+      {
+        $match: {
+          "donorNumbers.hospital": new mongoose.Types.ObjectId(hospitalId),
+        },
+      },
+      {
+        $addFields: {
+          isCertified: {
+            $cond: {
+              if: { $gt: [{ $size: "$transactions" }, 0] },
+              then: true,
+              else: false,
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          username: 1,
+          email: 1,
+          bloodType: 1,
+          phoneNumber: 1,
+          status: 1,
+          isCertified: 1,
+          transactions: 1,
+          donorNumbers: 1,
+        },
+      },
+    ]);
+
+    const categorizedDonors = donors.map((donor) => ({
+      ...donor
+    }));
+
+    res.status(200).json(categorizedDonors);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ message: "Error while fetching donor statuses" });
+  }
+};
+
+
 export const loginAdmin = async (req: any, res: any) => {
   try {
       const params:any = req.body
