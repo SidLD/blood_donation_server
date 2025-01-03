@@ -47,6 +47,8 @@ export interface ITransaction {
     status: 'PENDING' | 'DONE';
     remarks: String;
     hospital: IAdmin;
+    guestDonor: IGuestDonor,
+    type: 'MEMBER-APPOINTMENT' | 'GUEST-APPOINTMENT';
 }
 
 export interface IAdmin {

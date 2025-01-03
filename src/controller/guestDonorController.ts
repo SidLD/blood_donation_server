@@ -1,10 +1,16 @@
 import { Request, Response } from 'express';
-import { GuestDonor } from '../models/schema';
+import { GuestDonor, Transaction } from '../models/schema';
 
 // Create a new guest donor
 export const createGuestDonor = async (req: Request, res: Response) => {
   try {
     const { name, address, phoneNumber, email, sex, age, medicalCondition, date, time, hospital, profile , bloodType} = req.body;
+
+    const datetime = new Date(`${date} ${time}`);
+    console.log(datetime)
+    if (isNaN(datetime.getTime())) {
+      return res.status(400).json({ error: "Invalid date or time format." });
+    }
 
     const newGuestDonor = new GuestDonor({
       username: name,
@@ -21,12 +27,21 @@ export const createGuestDonor = async (req: Request, res: Response) => {
       profile : profile ? profile : null,
     });
 
-    // Save the new guest donor to the database
-    await newGuestDonor.save();
+    const newGustDonor = await newGuestDonor.save();
+    const guestDonor = newGustDonor._id;
+    
+    const newApplication = new Transaction({
+      guestDonor,
+      datetime,
+      hospital,
+      status:'PENDING',
+      type: 'GUEST-APPOINTMENT'
+    });
 
-    res.status(201).json({ message: 'Guest Donor created successfully', data: newGuestDonor });
+    await newApplication.save();
+    res.status(200).json({ message: 'Guest Donor created successfully', data: newGuestDonor });
   } catch (error) {
-    console.error(error);
+    console.log(error);
     res.status(500).json({ message: 'Error creating guest donor', error });
   }
 };

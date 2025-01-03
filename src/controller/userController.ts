@@ -249,7 +249,14 @@ export const getAdminDonorByCategory = async (req: any, res: any) => {
 export const loginAdmin = async (req: any, res: any) => {
   try {
       const params:any = req.body
-      const user:IAdmin | null = await Admin.findOne({ username: params.username, license: params.license })
+      const user: IAdmin | null = await Admin.findOne({
+        $expr: {
+          $and: [
+            { $eq: [{ $toLower: "$username" }, params.username.toLowerCase()] },
+            { $eq: [{ $toLower: "$license" }, params.license.toLowerCase()] },
+          ],
+        },
+      });      
       if(user){
           const isMatch = await bcrypt.compare(params.password, user.password.toString())
           if(isMatch){
@@ -286,7 +293,14 @@ export const loginAdmin = async (req: any, res: any) => {
 export const loginDonor = async (req: any, res: any) => {
   try {
       const params:IDonor = req.body
-      const user:IDonor | null = await Donor.findOne({ donorId: params.donorId, username: params.username })
+      const user: IDonor | null = await Donor.findOne({
+        $expr: {
+          $and: [
+            { $eq: [{ $toLower: "$donorId" }, params.donorId.toLowerCase()] },
+            { $eq: [{ $toLower: "$username" }, params.username.toLowerCase()] },
+          ],
+        },
+      });
       if(user){
           const isMatch = await bcrypt.compare(params.password, user.password.toString())
           if(isMatch){

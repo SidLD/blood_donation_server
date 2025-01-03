@@ -41,7 +41,6 @@ export const createHospitalApplication = async (req: any, res: Response) => {
     if (!req.user || !req.user.id) {
       return res.status(400).json({ error: "Unauthorized: User information is missing." });
     }
-    console.log(user, "test2" , hospital)
     const newApplication = new Transaction({
       user,
       datetime,
@@ -65,7 +64,10 @@ export const getHospitalApplications = async (req: any, res: Response) => {
       return res.status(400).json({ error: "Unauthorized: User information is missing." });
     }
     console.log(user)
-    const applications = await Transaction.find({hospital: user}).populate('hospital', 'address username')
+    const applications = await Transaction.find({hospital: user})
+      .populate('hospital', 'address username')
+      .populate('user', '-passowrd')
+      .populate('guestDonor')
     .sort({ datetime: 1 }); 
     res.json(applications);
   } catch (error) {
@@ -90,7 +92,7 @@ export const getHospitalCalendar = async (req: any, res: Response) => {
       hospital,
       datetime: { $gte: startOfMonth, $lt: endOfMonth },
       status: { $ne: "canceled" },
-    }).populate('user', '-password').sort({ datetime: 1 });
+    }).populate('user', '-password').populate('guestDonor', '-password').sort({ datetime: 1 });
 
     res.status(200).json(events);
   } catch (error) {

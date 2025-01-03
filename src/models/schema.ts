@@ -82,10 +82,16 @@ export const GuestDonor = model<IGuestDonor>("GuestDonor", guestDonorSchema);
 const transactionSchema = new Schema<ITransaction>(
   {
     user: { type: Schema.Types.ObjectId, ref: 'Donor' }, 
+    guestDonor: { type: Schema.Types.ObjectId, ref: 'GuestDonor' }, 
     datetime: { type: Date, required: true },
     status: {type: String, default: 'PENDING'},
     remarks: {type: String},
     hospital: { type: Schema.Types.ObjectId, ref: "Admin" },
+    type: {
+      type: String,
+      default: 'MEMBER-APPOINTMENT'
+    }
+    
   },
   { timestamps: true }
 );
