@@ -1,5 +1,5 @@
 import { Schema, model } from "mongoose";
-import { IAdmin, ITransaction, IBloodSupply, IDonor, IEvent, IGuestDonor, Iimg, INotification, IDonorNumber } from "../util/interface";
+import { IAdmin, ITransaction, IBloodSupply, IDonor, IEvent, IGuestDonor, Iimg, INotification, IDonorNumber, IDoctor } from "../util/interface";
 
 const donorNumberSchema = new Schema<IDonorNumber>({
   donorId: { type: String, required: true, unique: true },
@@ -111,6 +111,19 @@ const adminSchema = new Schema<IAdmin>(
 
 export const Admin = model("Admin", adminSchema);
 
+const doctorSchema = new Schema<IDoctor>(
+  {
+    username: { type: String, required: true },
+    license: { type: String, required: true },
+    address: { type: String, required: true },
+    password: { type: String, required: true },
+    profile: { type: Schema.Types.ObjectId, ref: "Image" }, // Reference to Iimg schema
+  },
+  { timestamps: true }
+);
+
+export const Doctor = model("Doctor", doctorSchema);
+
 const imgSchema = new Schema<Iimg>(
   {
     path: { type: String, required: true },
@@ -144,6 +157,7 @@ const eventSchema = new Schema<IEvent>(
     startDate: Date,
     endDate: Date,
     user: { type: Schema.Types.ObjectId, ref: "Admin" }, // Reference to Admin
+    post: {type: String, default: false}
   },
   { timestamps: true }
 );

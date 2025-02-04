@@ -60,6 +60,15 @@ export interface IAdmin {
     password: string;
 }
 
+export interface IDoctor {
+    _id?: string;
+    profile?: Iimg;
+    username: string;
+    license: string;
+    address: string;
+    password: string;
+}
+
 export interface Iimg {
     _id: string | undefined;
     path: string;
@@ -84,7 +93,8 @@ export interface IEvent {
     imgUrl: string;
     startDate: Date,
     endDate: Date,
-    user: IAdmin
+    user: IAdmin,
+    post: Boolean
 }
 
 export interface IBloodSupply {

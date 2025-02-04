@@ -1,7 +1,7 @@
 import express from 'express'
 import dotenv from 'dotenv'
 import { verifyToken } from '../util/verify';
-import { deleteDonorNumber, generateDonorNumber, getAdminDonor, getAdminDonorByCategory, getAdmins, getAdminSetting, getDonorNumber, getDonorSetting, loginAdmin, loginDonor, registerAdmin, registerDonor, updateDonorPassword, updateDonorSetting } from '../controller/userController';
+import { deleteDonorNumber, generateDonorNumber, getAdminDonor, getAdminDonorByCategory, getAdmins, getAdminSetting, getDonorNumber, getDonorSetting, loginAdmin, loginDonor, loginSuperAdmin, registerAdmin, registerDonor, updateDonorPassword, updateDonorSetting } from '../controller/userController';
 import { createGuestDonor, deleteGuestDonor, getGuestDonorById, updateGuestDonor } from '../controller/guestDonorController';
 dotenv.config()
 const userAPI = express()
@@ -31,6 +31,10 @@ userAPI.get('/hospitals', getAdmins);
 userAPI.post('/register-admin', registerAdmin);
 userAPI.post('/login-admin', loginAdmin);
 userAPI.get('/admin/setting', verifyToken ,getAdminSetting);
+
+//Super Admin
+
+userAPI.post('/login-super-admin', loginSuperAdmin);
 
 
 export default userAPI

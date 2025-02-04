@@ -2,8 +2,8 @@
 import mongoose from "mongoose";
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
-import { IAdmin , IDonor, IDonorNumber} from "../util/interface";
-import { Admin, Donor, DonorNumber } from "../models/schema";
+import { IAdmin , IDoctor, IDonor, IDonorNumber} from "../util/interface";
+import { Admin, Doctor, Donor, DonorNumber } from "../models/schema";
 
 export const generateDonorNumber = async (req: any, res: any) => {
     try {
@@ -77,14 +77,14 @@ export const registerAdmin = async (req: any, res: any) => {
     try {
         const { profile } = req.body;
         const params: IAdmin = req.body
-        const user:IAdmin | null = await Admin.findOne({license: params.license})
+        const user:IDoctor | null = await Doctor.findOne({license: params.license})
         if(user){
           return res.status(400).json({ error: 'License Already Used' });
         }
 
         const password = params.password ? params.password.toString() : 'password';
         const hashedPassword = await bcrypt.hash(password, 10)
-        const newUser = await Admin.create({
+        const newUser = await Doctor.create({
           username:params.username,
           license: params.license,
           address: params.address,
@@ -138,7 +138,7 @@ export const registerDonor = async (req: any, res: any) => {
 
 export const getAdmins = async (req: any, res: any) => {
     try {
-        const users:IAdmin[] = await Admin.find({}).select('-password');
+        const users:IDoctor[] = await Doctor.find({}).select('-password');
         res.status(200).send(JSON.stringify(users))
     } catch (error: any) {
         console.log(error.message)
@@ -249,7 +249,7 @@ export const getAdminDonorByCategory = async (req: any, res: any) => {
 export const loginAdmin = async (req: any, res: any) => {
   try {
       const params:any = req.body
-      const user: IAdmin | null = await Admin.findOne({
+      const user: IDoctor | null = await Doctor.findOne({
         $expr: {
           $and: [
             { $eq: [{ $toLower: "$username" }, params.username.toLowerCase()] },
@@ -289,6 +289,50 @@ export const loginAdmin = async (req: any, res: any) => {
       res.status(400).send({message:"Invalid Data or Email Already Taken"})
   }
 }
+
+export const loginSuperAdmin = async (req: any, res: any) => {
+    try {
+        const params:any = req.body
+        const user: IAdmin | null = await Admin.findOne({
+          $expr: {
+            $and: [
+              { $eq: [{ $toLower: "$username" }, params.username.toLowerCase()] },
+              { $eq: [{ $toLower: "$license" }, params.license.toLowerCase()] },
+            ],
+          },
+        });      
+        if(user){
+            const isMatch = await bcrypt.compare(params.password, user.password.toString())
+            if(isMatch){
+                const payload = {
+                    id: user._id,
+                    role: 'SUPER_ADMIN',
+                    username: user.username,
+                    license : user.license
+                };
+                jwt.sign(
+                    payload,
+                    `${process.env.JWT_SECRET}`,
+                    { expiresIn: "12hr" },
+                    async (err, token) => {
+                        if(err){
+                            res.status(400).send({message: err.message})
+                        }else{
+                            res.status(200).send({token: token})
+                        }
+                    }
+                )  
+            }else{
+                res.status(400).send({ok:false, message:"Incorrect Username or Password" })
+            }
+        }else{
+            res.status(400).send({message:"Incorrect Username or Password" })
+        }
+    } catch (error: any) {
+        console.log(error.message)
+        res.status(400).send({message:"Invalid Data or Email Already Taken"})
+    }
+  }
 
 export const loginDonor = async (req: any, res: any) => {
   try {
@@ -411,7 +455,7 @@ export const updateDonorPassword = async (req: any, res: any) => {
 export const getAdminSetting = async (req: any, res: any) => {
   try {
       const {user} = req;
-      const data:IAdmin = await Admin.findOne({
+      const data:IDoctor = await Doctor.findOne({
         _id : new mongoose.Types.ObjectId(user.id)
       }).select('-password');
       res.status(200).send(JSON.stringify(data))
