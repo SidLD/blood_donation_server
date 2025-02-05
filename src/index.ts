@@ -39,5 +39,5 @@ setTimeout(() => {
 }, 5000)
 // Start the server
 server.listen(port, () => {
-  console.log(`> Ready on http://localhost:${port}`);
+  console.log(`-> Ready on http://localhost:${port}`);
 });
