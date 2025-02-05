@@ -1,11 +1,10 @@
-// appController.ts
 import { Request, Response } from 'express';
 import { Event } from '../models/schema';
 
 // Create an Event
 export const createEvent = async (req: any, res: any) => {
   try {
-    const { location, title, description, imgUrl, startDate, endDate } = req.body;
+    const { location, title, description, imgUrl, startDate, endDate, post, hospital } = req.body;
 
     // Validate startDate and endDate
     if (new Date(startDate) >= new Date(endDate)) {
@@ -20,6 +19,8 @@ export const createEvent = async (req: any, res: any) => {
       startDate,
       endDate,
       user: req.user.id,
+      post,
+      hospital
     });
 
     await newEvent.save();
@@ -32,7 +33,13 @@ export const createEvent = async (req: any, res: any) => {
 // Get All Events
 export const getEvents = async (req: Request, res: Response) => {
   try {
-    const events = await Event.find().sort({ date: 1 }).populate('user', '-password');
+    const {post_type} = req.params;
+    let events;
+    if(post_type != 'all') {
+      events = await Event.find({ post: post_type == 'true' ? true : false}).sort({ date: 1 }).populate('user', '-password').populate('hospital');
+    }else {
+      events = await Event.find({}).sort({ date: 1 }).populate('user', '-password').populate('hospital');
+    }
     res.json(events);
   } catch (error) {
     console.log(error);
@@ -44,14 +51,14 @@ export const getEvents = async (req: Request, res: Response) => {
 export const updateEvent = async (req: Request, res: Response) => {
   try {
     const eventId = req.params.id;
-    const { title, description, location, imgUrl, startDate, endDate } = req.body;
+    const { title, description, location, imgUrl, startDate, endDate, post, hospital } = req.body;
 
     // Validate startDate and endDate if they are provided
     if (startDate && endDate && new Date(startDate) >= new Date(endDate)) {
       return res.status(400).json({ error: "Start date must be earlier than end date." });
     }
 
-    const data: any = { title, description, location, startDate, endDate };
+    const data: any = { title, description, location, startDate, endDate, post, hospital };
     if (imgUrl) {
       data.imgUrl = imgUrl;
     }

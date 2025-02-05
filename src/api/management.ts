@@ -26,7 +26,7 @@ appAPI.delete('/application-status/:applicationId', verifyToken, deleteApplicati
 
 // Event Routes
 appAPI.post('/event', verifyToken, createEvent);              // Create an event
-appAPI.get('/events', getEvents);    
+appAPI.get('/events/:post_type', getEvents);    
 appAPI.put('/event/:id', verifyToken, updateEvent);                             // Get all events
 appAPI.delete('/event/:id', verifyToken, deleteEvent);     
 

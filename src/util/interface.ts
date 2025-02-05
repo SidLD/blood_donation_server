@@ -60,6 +60,15 @@ export interface IAdmin {
     password: string;
 }
 
+export interface IHospital {
+    _id?: string;
+    profile?: Iimg;
+    username: string;
+    license: string;
+    address: string;
+    contact: string
+}
+
 export interface IDoctor {
     _id?: string;
     profile?: Iimg;
@@ -95,6 +104,7 @@ export interface IEvent {
     endDate: Date,
     user: IAdmin,
     post: Boolean
+    hospital?: IHospital
 }
 
 export interface IBloodSupply {

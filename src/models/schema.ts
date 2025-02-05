@@ -1,5 +1,5 @@
 import { Schema, model } from "mongoose";
-import { IAdmin, ITransaction, IBloodSupply, IDonor, IEvent, IGuestDonor, Iimg, INotification, IDonorNumber, IDoctor } from "../util/interface";
+import { IAdmin, ITransaction, IBloodSupply, IDonor, IEvent, IGuestDonor, Iimg, INotification, IDonorNumber, IDoctor, IHospital } from "../util/interface";
 
 const donorNumberSchema = new Schema<IDonorNumber>({
   donorId: { type: String, required: true, unique: true },
@@ -103,13 +103,27 @@ const adminSchema = new Schema<IAdmin>(
     username: { type: String, required: true },
     license: { type: String, required: true },
     address: { type: String, required: true },
-    password: { type: String, required: true },
+    password: { type: String, required: false },
     profile: { type: Schema.Types.ObjectId, ref: "Image" }, // Reference to Iimg schema
   },
   { timestamps: true }
 );
 
 export const Admin = model("Admin", adminSchema);
+
+
+const hospitalSchema = new Schema<IHospital>(
+  {
+    username: { type: String, required: true },
+    license: { type: String, required: true },
+    address: { type: String, required: true },
+    contact: { type: String },
+    profile: { type: Schema.Types.ObjectId, ref: "Image" }, // Reference to Iimg schema
+  },
+  { timestamps: true }
+);
+
+export const Hospital = model("Hospital", hospitalSchema);
 
 const doctorSchema = new Schema<IDoctor>(
   {
@@ -156,8 +170,9 @@ const eventSchema = new Schema<IEvent>(
     location:  { type: String, required: true },
     startDate: Date,
     endDate: Date,
-    user: { type: Schema.Types.ObjectId, ref: "Admin" }, // Reference to Admin
-    post: {type: String, default: false}
+    user: { type: Schema.Types.ObjectId, ref: "Admin" }, 
+    post: {type: String, default: false},
+    hospital:{  type: Schema.Types.ObjectId, ref: "Hospital" }, 
   },
   { timestamps: true }
 );

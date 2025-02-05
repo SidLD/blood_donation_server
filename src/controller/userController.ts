@@ -2,8 +2,8 @@
 import mongoose from "mongoose";
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
-import { IAdmin , IDoctor, IDonor, IDonorNumber} from "../util/interface";
-import { Admin, Doctor, Donor, DonorNumber } from "../models/schema";
+import { IAdmin , IDoctor, IDonor, IDonorNumber, IHospital} from "../util/interface";
+import { Admin, Doctor, Donor, DonorNumber, Hospital } from "../models/schema";
 
 export const generateDonorNumber = async (req: any, res: any) => {
     try {
@@ -96,6 +96,31 @@ export const registerAdmin = async (req: any, res: any) => {
         console.log(error.message)
         res.status(400).send({message:"Invalid Data"})
     }
+}
+
+export const registerSuperAdmin = async (req: any, res: any) => {
+  try {
+      const { profile } = req.body;
+      const params: IAdmin = req.body
+      const user:IAdmin | null = await Admin.findOne({license: params.license})
+      if(user){
+        return res.status(400).json({ error: 'License Already Used' });
+      }
+
+      const password = params.password ? params.password.toString() : 'password';
+      const hashedPassword = await bcrypt.hash(password, 10)
+      const newUser = await Admin.create({
+        username:params.username,
+        license: params.license,
+        address: params.address,
+        password: hashedPassword,
+        profile: profile ? profile : null
+      })
+      res.status(200).send({newUser})
+  } catch (error: any) {
+      console.log(error.message)
+      res.status(400).send({message:"Invalid Data"})
+  }
 }
 
 export const registerDonor = async (req: any, res: any) => {
@@ -462,5 +487,59 @@ export const getAdminSetting = async (req: any, res: any) => {
   } catch (error: any) {
       console.log(error.message)
       res.status(400).send({message:"Error in fetching Admin Data"})
+  }
+}
+
+export const getHospitals = async (req: any, res: any) => {
+  try {
+      const users:IHospital[] = await Hospital.find({}).select('-password');
+      res.status(200).send(JSON.stringify(users))
+  } catch (error: any) {
+      console.log(error)
+      res.status(400).send({message:"Error while Fetching Donors"})
+  }
+}
+
+
+export const registerHospital = async (req: any, res: any) => {
+  try {
+      const { profile } = req.body;
+      const params: IHospital = req.body
+      const user:IHospital | null = await Hospital.findOne({license: params.license})
+      if(user){
+        return res.status(400).json({ error: 'License Already Used' });
+      }
+
+      const newUser = await Hospital.create({
+        username:params.username,
+        license: params.license,
+        address: params.address,
+        contact: params.contact,
+        profile: profile ? profile : null
+      })
+      res.status(200).send({newUser})
+  } catch (error: any) {
+      console.log(error)
+      res.status(400).send({message:"Invalid Data"})
+  }
+}
+
+export const updateHospital = async (req: any, res: any) => {
+  try {
+      const params: IHospital = req.body
+      const user:IHospital | null = await Hospital.findOne({license: params.license})
+      if(user){
+        return res.status(400).json({ error: 'License Already Used' });
+      }
+      const newUser = await Hospital.findByIdAndUpdate(params._id,{
+        username:params.username,
+        license: params.license,
+        address: params.address,
+        contact: params.contact,
+      })
+      res.status(200).send({newUser})
+  } catch (error: any) {
+      console.log(error)
+      res.status(400).send({message:"Invalid Data"})
   }
 }
