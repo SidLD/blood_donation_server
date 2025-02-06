@@ -187,11 +187,6 @@ export const getAdminDonor = async (req: any, res: any) => {
         $unwind: '$donorNumbers', 
       },
       {
-        $match: {
-          'donorNumbers.hospital': new mongoose.Types.ObjectId(hospitalId), 
-        },
-      },
-      {
         $project: {
           password: 0, 
         },
@@ -228,11 +223,6 @@ export const getAdminDonorByCategory = async (req: any, res: any) => {
       },
       {
         $unwind: "$donorNumbers",
-      },
-      {
-        $match: {
-          "donorNumbers.hospital": new mongoose.Types.ObjectId(hospitalId),
-        },
       },
       {
         $addFields: {

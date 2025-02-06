@@ -32,8 +32,7 @@ export const createDonorApplication = async (req: any, res: Response) => {
 
 export const createHospitalApplication = async (req: any, res: Response) => {
   try {
-    const {  datetime, status, user } = req.body;
-    const hospital = req.user.id;
+    const {  datetime, status, user, hospital } = req.body;
     // Validate required fields
     if (!datetime || !hospital || !status) {
       return res.status(400).json({ error: "All fields are required: datetime, hospital, and status." });
@@ -41,6 +40,7 @@ export const createHospitalApplication = async (req: any, res: Response) => {
     if (!req.user || !req.user.id) {
       return res.status(400).json({ error: "Unauthorized: User information is missing." });
     }
+    console.log(hospital)
     const newApplication = new Transaction({
       user,
       datetime,
@@ -59,12 +59,10 @@ export const createHospitalApplication = async (req: any, res: Response) => {
 // Get All Applications
 export const getHospitalApplications = async (req: any, res: Response) => {
   try {
-    const user = req.user.id;
     if (!req.user || !req.user.id) {
       return res.status(400).json({ error: "Unauthorized: User information is missing." });
     }
-    console.log(user)
-    const applications = await Transaction.find({hospital: user})
+    const applications = await Transaction.find()
       .populate('hospital', 'address username')
       .populate('user', '-passowrd')
       .populate('guestDonor')
@@ -77,7 +75,6 @@ export const getHospitalApplications = async (req: any, res: Response) => {
 
 export const getHospitalCalendar = async (req: any, res: Response) => {
   try {
-    const hospital = req.user.id;
     const { month, year } = req.query;
 
     if (!month || !year) {
@@ -89,7 +86,6 @@ export const getHospitalCalendar = async (req: any, res: Response) => {
     endOfMonth.setMonth(endOfMonth.getMonth() + 1);
 
     const events = await Transaction.find({
-      hospital,
       datetime: { $gte: startOfMonth, $lt: endOfMonth },
       status: { $ne: "canceled" },
     }).populate('user', '-password').populate('guestDonor', '-password').sort({ datetime: 1 });

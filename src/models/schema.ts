@@ -86,7 +86,7 @@ const transactionSchema = new Schema<ITransaction>(
     datetime: { type: Date, required: true },
     status: {type: String, default: 'PENDING'},
     remarks: {type: String},
-    hospital: { type: Schema.Types.ObjectId, ref: "Admin" },
+    hospital: { type: Schema.Types.ObjectId, ref: "Hospital" },
     type: {
       type: String,
       default: 'MEMBER-APPOINTMENT'
