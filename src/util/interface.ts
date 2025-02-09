@@ -3,7 +3,7 @@ export interface IDonorNumber {
     donorId: string;
     isUsed: boolean;
     isVerified: boolean;
-    hospital: IAdmin
+    hospital: IHospital
 }
 
 export interface IDonor {
@@ -46,7 +46,7 @@ export interface ITransaction {
     datetime: Date;
     status: 'PENDING' | 'DONE';
     remarks: String;
-    hospital: IAdmin;
+    hospital: IHospital;
     guestDonor: IGuestDonor,
     type: 'MEMBER-APPOINTMENT' | 'GUEST-APPOINTMENT';
 }
@@ -66,6 +66,7 @@ export interface IHospital {
     username: string;
     license: string;
     address: string;
+    password: string;
     contact: string
 }
 
@@ -76,6 +77,7 @@ export interface IDoctor {
     license: string;
     address: string;
     password: string;
+    hospital?: IHospital;
 }
 
 export interface Iimg {

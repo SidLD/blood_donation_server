@@ -117,6 +117,7 @@ const hospitalSchema = new Schema<IHospital>(
     username: { type: String, required: true },
     license: { type: String, required: true },
     address: { type: String, required: true },
+    password: { type: String, required: true },
     contact: { type: String },
     profile: { type: Schema.Types.ObjectId, ref: "Image" }, // Reference to Iimg schema
   },
@@ -131,6 +132,7 @@ const doctorSchema = new Schema<IDoctor>(
     license: { type: String, required: true },
     address: { type: String, required: true },
     password: { type: String, required: true },
+    hospital: { type: Schema.Types.ObjectId, ref: "Hospital" },
     profile: { type: Schema.Types.ObjectId, ref: "Image" }, // Reference to Iimg schema
   },
   { timestamps: true }

@@ -4,6 +4,7 @@ import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import { IAdmin , IDoctor, IDonor, IDonorNumber, IHospital} from "../util/interface";
 import { Admin, Doctor, Donor, DonorNumber, Hospital } from "../models/schema";
+import e from "express";
 
 export const generateDonorNumber = async (req: any, res: any) => {
     try {
@@ -163,7 +164,10 @@ export const registerDonor = async (req: any, res: any) => {
 
 export const getAdmins = async (req: any, res: any) => {
     try {
-        const users:IDoctor[] = await Doctor.find({}).select('-password');
+        const hospitalId = req.user.id;
+        const users:IDoctor[] = await Doctor.find({
+          hospital: hospitalId
+        }).select('-password');
         res.status(200).send(JSON.stringify(users))
     } catch (error: any) {
         console.log(error.message)
@@ -186,6 +190,7 @@ export const getAdminDonor = async (req: any, res: any) => {
       {
         $unwind: '$donorNumbers', 
       },
+      
       {
         $project: {
           password: 0, 
@@ -264,20 +269,35 @@ export const getAdminDonorByCategory = async (req: any, res: any) => {
 export const loginAdmin = async (req: any, res: any) => {
   try {
       const params:any = req.body
-      const user: IDoctor | null = await Doctor.findOne({
-        $expr: {
-          $and: [
-            { $eq: [{ $toLower: "$username" }, params.username.toLowerCase()] },
-            { $eq: [{ $toLower: "$license" }, params.license.toLowerCase()] },
-          ],
-        },
-      });      
+      let user : IDoctor | null = null;
+      if(params.loginType == true) {
+        console.log('test')
+        user = await Hospital.findOne({
+          $expr: {
+            $and: [
+              { $eq: [{ $toLower: "$username" }, params.username.toLowerCase()] },
+              { $eq: [{ $toLower: "$license" }, params.license.toLowerCase()] },
+            ],
+          },
+        });  
+      } else{
+        user = await Doctor.findOne({
+          $expr: {
+            $and: [
+              { $eq: [{ $toLower: "$username" }, params.username.toLowerCase()] },
+              { $eq: [{ $toLower: "$license" }, params.license.toLowerCase()] },
+            ],
+          },
+        });  
+      }   
+      console.log(user)
       if(user){
           const isMatch = await bcrypt.compare(params.password, user.password.toString())
           if(isMatch){
               const payload = {
                   id: user._id,
-                  role: 'ADMIN',
+                  role: params.loginType == true ? 'HOSPITAL' : 'ADMIN',
+                  hospital: user.hospital?._id ? user.hospital?._id : '',
                   username: user.username,
                   license : user.license
               };
@@ -490,6 +510,17 @@ export const getHospitals = async (req: any, res: any) => {
   }
 }
 
+export const getHospitalDetail = async (req: any, res: any) => {
+  try {
+    const user:IHospital = await Hospital.findById(req.user.id).select('-password');
+    console.log(user)
+      res.status(200).send(user)
+  } catch (error: any) {
+      console.log(error)
+      res.status(400).send({message:"Error while Fetching Donors"})
+  }
+}
+
 
 export const registerHospital = async (req: any, res: any) => {
   try {
@@ -499,26 +530,29 @@ export const registerHospital = async (req: any, res: any) => {
       if(user){
         return res.status(400).json({ error: 'License Already Used' });
       }
-
+      const password = await bcrypt.hash(params.password, 10)
       const newUser = await Hospital.create({
         username:params.username,
         license: params.license,
         address: params.address,
         contact: params.contact,
-        profile: profile ? profile : null
+        profile: profile ? profile : null,
+        password
       })
       res.status(200).send({newUser})
   } catch (error: any) {
       console.log(error)
       res.status(400).send({message:"Invalid Data"})
   }
-}
+} 
 
 export const updateHospital = async (req: any, res: any) => {
   try {
       const params: IHospital = req.body
+      const {hospitalId} = req.params;
       const user:IHospital | null = await Hospital.findOne({license: params.license})
-      if(user){
+      const userId = user?._id?.toString() as string
+    if(user && userId != hospitalId){
         return res.status(400).json({ error: 'License Already Used' });
       }
       const newUser = await Hospital.findByIdAndUpdate(params._id,{
@@ -533,3 +567,29 @@ export const updateHospital = async (req: any, res: any) => {
       res.status(400).send({message:"Invalid Data"})
   }
 }
+
+
+export const updateHospitalPassword = async (req: any, res: any) => {
+  try {
+    const {hospitalId} = req.params;
+    const { currentPassword, newPassword } = req.body;
+    
+    if (!hospitalId || !newPassword) {
+      return res.status(404).json({ error: 'Hospital not found' });
+    }
+    const hospital:any = await Hospital.findById(hospitalId);
+
+    if(hospital && await bcrypt.compare(currentPassword, hospital.password)){
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      await Hospital.findByIdAndUpdate(hospitalId,  { password: hashedPassword });
+      res.status(200).json({ message: 'Password updated successfully' });
+    }else{
+      res.status(400).json({ message: 'Incorrect Current Password' });
+
+    }
+
+  } catch (error: any) {
+    console.log(error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
