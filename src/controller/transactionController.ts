@@ -62,7 +62,16 @@ export const getHospitalApplications = async (req: any, res: Response) => {
     if (!req.user || !req.user.id) {
       return res.status(400).json({ error: "Unauthorized: User information is missing." });
     }
-    const applications = await Transaction.find()
+    let hospitalId = null;
+    console.log(req.user.role, req.user.hospital)
+    if(req.user.role == 'ADMIN'){
+      hospitalId = req.user.hospital
+    }else{
+      hospitalId = req.user.id
+    }
+    const applications = await Transaction.find({
+      hospital: hospitalId
+    })
       .populate('hospital', 'address username')
       .populate('user', '-passowrd')
       .populate('guestDonor')
@@ -76,7 +85,13 @@ export const getHospitalApplications = async (req: any, res: Response) => {
 export const getHospitalCalendar = async (req: any, res: Response) => {
   try {
     const { month, year } = req.query;
-
+    let hospitalId = null;
+    console.log(req.user.role, req.user.hospital)
+    if(req.user.role == 'ADMIN'){
+      hospitalId = req.user.hospital
+    }else{
+      hospitalId = req.user.id
+    }
     if (!month || !year) {
       return res.status(400).json({ error: "Month and year are required for filtering." });
     }
@@ -88,6 +103,7 @@ export const getHospitalCalendar = async (req: any, res: Response) => {
     const events = await Transaction.find({
       datetime: { $gte: startOfMonth, $lt: endOfMonth },
       status: { $ne: "canceled" },
+      hospital: hospitalId
     }).populate('user', '-password').populate('guestDonor', '-password').sort({ datetime: 1 });
 
     res.status(200).json(events);

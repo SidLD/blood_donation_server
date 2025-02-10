@@ -19,6 +19,7 @@ export const verifyToken = async (req: any, res: any, next: any) => {
                 req.user.firstName = decoded.firstName;
                 req.user.lastName = decoded.lastName;
                 req.user.role = decoded.role
+                req.user.hospital = decoded.hospital
                 next(); 
             })
         }else{

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { Event } from '../models/schema';
-
+import jwt from 'jsonwebtoken';
 // Create an Event
 export const createEvent = async (req: any, res: any) => {
   try {
@@ -31,14 +31,36 @@ export const createEvent = async (req: any, res: any) => {
 };
 
 // Get All Events
-export const getEvents = async (req: Request, res: Response) => {
+export const getEvents = async (req: any, res: Response) => {
   try {
     const {post_type} = req.params;
     let events;
-    if(post_type != 'all') {
-      events = await Event.find({ post: post_type == 'true' ? true : false}).sort({ date: 1 }).populate('user', '-password').populate('hospital');
-    }else {
-      events = await Event.find({}).sort({ date: 1 }).populate('user', '-password').populate('hospital');
+    let hospitalId = null;
+    const token = await req.headers['x-access-token']?.split(' ')[1];
+    if(token){
+        jwt.verify(token,`${process.env.JWT_SECRET}`, async (err: any, decoded: any) => {
+            if(!err) {
+              console.log(decoded)
+              if(decoded.role == 'ADMIN'){
+                hospitalId = decoded.hospital
+              }else if(decoded.role == 'HOSPITAL'){
+                hospitalId = decoded.id
+              }
+            }
+        })
+    }
+    if(hospitalId){
+      if(post_type != 'all') {
+        events = await Event.find({ post: post_type == 'true' ? true : false, hospital: hospitalId}).sort({ date: 1 }).populate('user', '-password').populate('hospital');
+      }else {
+        events = await Event.find({hospital: hospitalId}).sort({ date: 1 }).populate('user', '-password').populate('hospital');
+      }
+    }else{
+      if(post_type != 'all') {
+        events = await Event.find({ post: post_type == 'true' ? true : false}).sort({ date: 1 }).populate('user', '-password').populate('hospital');
+      }else {
+        events = await Event.find({}).sort({ date: 1 }).populate('user', '-password').populate('hospital');
+      }
     }
     res.json(events);
   } catch (error) {
