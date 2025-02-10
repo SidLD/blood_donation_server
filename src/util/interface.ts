@@ -77,6 +77,7 @@ export interface IDoctor {
     license: string;
     address: string;
     password: string;
+    status: 'APPROVED' | 'REJECT' | 'PENDING'
     hospital?: IHospital;
 }
 

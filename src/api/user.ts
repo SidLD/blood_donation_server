@@ -1,7 +1,7 @@
 import express from 'express'
 import dotenv from 'dotenv'
 import { verifyToken } from '../util/verify';
-import { deleteDonorNumber, generateDonorNumber, getAdminDonor, getAdminDonorByCategory, getAdmins, getAdminSetting, getDonorNumber, getDonorSetting, getHospitalDetail, getHospitals, loginAdmin, loginDonor, loginSuperAdmin, registerAdmin, registerDonor, registerHospital, registerSuperAdmin, updateDonorPassword, updateDonorSetting, updateHospital, updateHospitalPassword } from '../controller/userController';
+import { deleteDonorNumber, generateDonorNumber, getAdminDonor, getAdminDonorByCategory, getAdmins, getAdminSetting, getDonorNumber, getDonorSetting, getHospitalDetail, getHospitals, loginAdmin, loginDonor, loginSuperAdmin, registerAdmin, registerDonor, registerHospital, registerSuperAdmin, updateAdminStatus, updateDonorPassword, updateDonorSetting, updateHospital, updateHospitalPassword } from '../controller/userController';
 import { createGuestDonor, deleteGuestDonor, getGuestDonorById, updateGuestDonor } from '../controller/guestDonorController';
 dotenv.config()
 const userAPI = express()
@@ -38,9 +38,10 @@ userAPI.post('/register-super-admin', verifyToken, registerSuperAdmin);
 userAPI.post('/login-super-admin', loginSuperAdmin);
 
 //Hospital
-userAPI.get('/hospitals',verifyToken, getHospitals);
+userAPI.get('/hospitals', getHospitals);
 userAPI.get('/hospitals/:hospitalId',verifyToken, getHospitalDetail);
-userAPI.get('/admin',verifyToken, getAdmins);
+userAPI.get('/hospital/admins',verifyToken, getAdmins);
+userAPI.put('/hospital/admins/status/:adminId',verifyToken, updateAdminStatus);
 userAPI.post('/hospitals', verifyToken, registerHospital);
 userAPI.put('/hospitals/:hospitalId', verifyToken, updateHospital);
 userAPI.put('/hospitals/password/:hospitalId', verifyToken, updateHospitalPassword);

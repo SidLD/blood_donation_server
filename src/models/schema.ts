@@ -132,6 +132,7 @@ const doctorSchema = new Schema<IDoctor>(
     license: { type: String, required: true },
     address: { type: String, required: true },
     password: { type: String, required: true },
+    status: { type: String, default: 'PENDING' },
     hospital: { type: Schema.Types.ObjectId, ref: "Hospital" },
     profile: { type: Schema.Types.ObjectId, ref: "Image" }, // Reference to Iimg schema
   },

@@ -77,10 +77,14 @@ export const getDonorNumber = async (req: any, res: any) => {
 export const registerAdmin = async (req: any, res: any) => {
     try {
         const { profile } = req.body;
-        const params: IAdmin = req.body
+        const params: any = req.body
         const user:IDoctor | null = await Doctor.findOne({license: params.license})
         if(user){
           return res.status(400).json({ error: 'License Already Used' });
+        }
+
+        if(!params.hospitalId){
+          return res.status(400).json({ error: 'Hospital is required' });
         }
 
         const password = params.password ? params.password.toString() : 'password';
@@ -89,6 +93,7 @@ export const registerAdmin = async (req: any, res: any) => {
           username:params.username,
           license: params.license,
           address: params.address,
+          hospital: params.hospitalId,
           password: hashedPassword,
           profile: profile ? profile : null
         })
@@ -165,14 +170,30 @@ export const registerDonor = async (req: any, res: any) => {
 export const getAdmins = async (req: any, res: any) => {
     try {
         const hospitalId = req.user.id;
-        const users:IDoctor[] = await Doctor.find({
-          hospital: hospitalId
-        }).select('-password');
+        const users:IDoctor[] = await Doctor.find({hospital:hospitalId }).select('-password').populate('hospital').select('-password');
         res.status(200).send(JSON.stringify(users))
     } catch (error: any) {
         console.log(error.message)
         res.status(400).send({message:"Error while Fetching Donors"})
     }
+}
+
+export const updateAdminStatus = async (req: any, res: any) => {
+  try {
+      const hospitalId = req.user.id;
+      const { status } = req.body;
+      const { adminId } = req.params;
+      const user:any = await Doctor.findOneAndUpdate({
+        hospital: hospitalId,
+        _id: adminId
+      }, {
+        status
+      }).select('-password');
+      res.status(200).send(JSON.stringify(user))
+  } catch (error: any) {
+      console.log(error)
+      res.status(400).send({message:"Error while Updating Admin"})
+  }
 }
 
 export const getAdminDonor = async (req: any, res: any) => {
@@ -271,7 +292,6 @@ export const loginAdmin = async (req: any, res: any) => {
       const params:any = req.body
       let user : IDoctor | null = null;
       if(params.loginType == true) {
-        console.log('test')
         user = await Hospital.findOne({
           $expr: {
             $and: [
@@ -290,9 +310,15 @@ export const loginAdmin = async (req: any, res: any) => {
           },
         });  
       }   
-      console.log(user)
       if(user){
-          const isMatch = await bcrypt.compare(params.password, user.password.toString())
+        const isMatch = await bcrypt.compare(params.password, user.password.toString())
+        console.log(isMatch, user)
+          if(params.loginType == false){
+            if(user.status == 'PENDING' || user.status == 'REJECT'){
+                res.status(400).send({ok:false, message:"User is either Pending or Rejected" })
+                return;
+            }
+          }
           if(isMatch){
               const payload = {
                   id: user._id,
@@ -513,7 +539,6 @@ export const getHospitals = async (req: any, res: any) => {
 export const getHospitalDetail = async (req: any, res: any) => {
   try {
     const user:IHospital = await Hospital.findById(req.user.id).select('-password');
-    console.log(user)
       res.status(200).send(user)
   } catch (error: any) {
       console.log(error)
