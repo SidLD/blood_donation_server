@@ -4,11 +4,22 @@ import { GuestDonor, Transaction } from '../models/schema';
 // Create a new guest donor
 export const createGuestDonor = async (req: Request, res: Response) => {
   try {
-    const { name, address, phoneNumber, email, sex, age, medicalCondition, date, time, hospital, profile , bloodType} = req.body;
+    const { name, address, phoneNumber, email, sex, age, medicalCondition, date, time, hospital, profile, bloodType } = req.body;
 
-    const datetime = new Date(`${date} ${time}`);
-    console.log(datetime)
-    if (isNaN(datetime.getTime())) {
+    let [rawTime, period] = time.split(" "); 
+    let [hours, minutes] = rawTime.split(":").map(Number);
+
+    if (period === "PM" && hours !== 12) {
+      hours += 12; 
+    } else if (period === "AM" && hours === 12) {
+      hours = 0; 
+    }
+
+    const formattedDate = new Date(`${date} ${hours}:${String(minutes).padStart(2, "0")}`);
+
+    console.log("Converted datetime:", formattedDate);
+
+    if (isNaN(formattedDate.getTime())) {
       return res.status(400).json({ error: "Invalid date or time format." });
     }
 
@@ -27,12 +38,12 @@ export const createGuestDonor = async (req: Request, res: Response) => {
       profile : profile ? profile : null,
     });
 
-    const newGustDonor = await newGuestDonor.save();
-    const guestDonor = newGustDonor._id;
-    
+    const newGuestDonorSaved = await newGuestDonor.save();
+    const guestDonor = newGuestDonorSaved._id;
+
     const newApplication = new Transaction({
       guestDonor,
-      datetime,
+      datetime: formattedDate,
       hospital,
       status:'PENDING',
       type: 'GUEST-APPOINTMENT'
