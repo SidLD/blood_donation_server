@@ -17,8 +17,12 @@ const port = process.env.PORT || 8080;
 const urlencodedParser = bodyParser.urlencoded({ extended: false });
 app.use(bodyParser.json(), urlencodedParser);
 
+const allowedOrigins = [
+  process.env.FRONT_URI || "http://localhost:3000",
+  process.env.FRONT_URI2 || "http://localhost:5173"
+];
 const corsOptions = {
-  origin: process.env.FRONT_URI,
+  origin: allowedOrigins,
 };
 console.log(corsOptions)
 app.use(cors(corsOptions));
